@@ -17,9 +17,14 @@
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #define PH_PIN A1
+#define TDS_PIN A0
 
 float voltage, phValue, temperature = 25;
 DFRobot_PH ph;
+
+int tdssensorValue   = 0;
+float tdsValue    = 0;
+float tdsVoltage  = 0;
 
 int buttonPin = 8;  // the number of the first pushbutton pin
 int buttonPin2 = 9; // the number of the second pushbutton pin
@@ -68,8 +73,13 @@ void loop() {
             Serial.println(phValue);
             lastPhValue = phValue;
         }
-        //Serial.println(phValue);
-        //phondisplay(phValue);
+
+        tdssensorValue = analogRead(TDS_PIN);
+        tdsVoltage = tdssensorValue*5/1024.0; //Convert analog reading to Voltage
+        tdsValue=(133.42/tdsVoltage*tdsVoltage*tdsVoltage - 255.86*tdsVoltage*tdsVoltage + 857.39*tdsVoltage)*0.5; //Convert voltage value to TDS value
+        Serial.print("TDS Value = "); 
+        Serial.print(tdsValue);
+        Serial.println(" ppm");
 
     }
     ph.calibration(voltage, temperature); // calibration process by Serial CMD
