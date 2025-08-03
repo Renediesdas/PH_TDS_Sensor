@@ -48,6 +48,7 @@ unsigned long lastDebounceTime3 = 0;
 
 unsigned long debounceDelay = 50;
 float lastPhValue = -1.0;  // To track the last displayed pH value
+float lasttdsValue = -1.0; 
 
 void setup() {
     Serial.begin(115200);  
@@ -69,29 +70,55 @@ void loop() {
         voltage = analogRead(PH_PIN) / 1024.0 * 5000; // read the voltage
         phValue = ph.readPH(voltage, temperature); // convert voltage to pH with temperature compensation
         if(phValue != lastPhValue) {
-            //phondisplay(phValue);
-            Serial.println(phValue);
+            phondisplay(phValue, lastPhValue);
+            //Serial.println(phValue);
             lastPhValue = phValue;
         }
-
+        Serial.println("tfs");
         tdssensorValue = analogRead(TDS_PIN);
         tdsVoltage = tdssensorValue*5/1024.0; //Convert analog reading to Voltage
         tdsValue=(133.42/tdsVoltage*tdsVoltage*tdsVoltage - 255.86*tdsVoltage*tdsVoltage + 857.39*tdsVoltage)*0.5; //Convert voltage value to TDS value
-        Serial.print("TDS Value = "); 
-        Serial.print(tdsValue);
-        Serial.println(" ppm");
+        if(tdsValue != lasttdsValue) {
+          ppmondisplay(tdsValue, lasttdsValue); 
+          lasttdsValue = tdsValue;
+
+        }
+        //Serial.print("TDS Value = "); 
+        //Serial.print(tdsValue);
+        //Serial.println(" ppm");
+        //ppmondisplay(tdsValue);
 
     }
     ph.calibration(voltage, temperature); // calibration process by Serial CMD
     button();
 }
 
-void phondisplay(float Test) {
-    display.clearDisplay();
+void phondisplay(float phValue, float lastPhValue) {
+    //display.clearDisplay();
     display.setTextSize(2);
-    display.setTextColor(SH110X_WHITE);
     display.setCursor(0, 0);
-    display.println(Test);
+    display.setTextColor(SH110X_BLACK);
+    display.println(lastPhValue);
+    display.setTextSize(2);
+    display.setCursor(0, 0);
+    display.setTextColor(SH110X_WHITE);
+    display.println(phValue);
+    
+    display.display();
+}
+
+void ppmondisplay(float tdsValue, float lasttdsValue) {
+  //  display.clearDisplay();
+    Serial.println("ppmondisplayy");
+    display.setTextSize(2);
+    display.setCursor(0, 32);
+    display.setTextColor(SH110X_BLACK);
+    display.println(lasttdsValue);
+    display.setTextSize(2);
+    display.setCursor(0, 32);
+    display.setTextColor(SH110X_WHITE);
+    display.println(tdsValue);
+    
     display.display();
 }
 
@@ -100,8 +127,8 @@ void calondisplay(float result) {
     display.setTextSize(1);
     display.setTextColor(SH110X_WHITE);
     display.setCursor(0, 0);
-    Serial.println("result: ");
-    Serial.print(result);
+    //Serial.println("result: ");
+    //Serial.print(result);
 
     if(result == 1){
       display.println("Kalibration gestartet");
@@ -117,6 +144,7 @@ void calondisplay(float result) {
 
     display.display();
     delay(3000);
+    display.clearDisplay();
 }
 
 void button() {
@@ -142,8 +170,8 @@ void button() {
             buttonState = reading;
             if (buttonState == LOW && !wasButtonPressed) {
                 result = ph.startCalibration(1);
-                Serial.println("Button1 gedruckt");
-                //calondisplay(result);
+                //Serial.println("Button1 gedruckt");
+                calondisplay(result);
                 wasButtonPressed = true;
             }
         } else {
@@ -157,7 +185,7 @@ void button() {
             if (buttonState2 == LOW && !wasButton2Pressed) {
                 result = ph.startCalibration(2);
                 Serial.println("Button2 gedruckt");
-                //calondisplay(result);
+                calondisplay(result);
                 wasButton2Pressed = true;
             }
         } else {
@@ -171,7 +199,7 @@ void button() {
             if (buttonState3 == LOW && !wasButton3Pressed) {
                 result = ph.startCalibration(3);
                 Serial.println("Button3 gedruckt");
-                //calondisplay(result);
+                calondisplay(result);
                 wasButton3Pressed = true;
             }
         } else {
